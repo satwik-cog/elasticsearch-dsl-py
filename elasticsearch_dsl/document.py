@@ -91,9 +91,8 @@ class DocTypeOptions(object):
         if self._matches is not None:
             return self._matches(hit)
 
-        return (
-                self.index is None or fnmatch(hit.get('_index', ''), self.index)
-            ) and self.name == hit.get('_type')
+        # In ES 7+, mapping types are removed, so we only match on index
+        return self.index is None or fnmatch(hit.get('_index', ''), self.index)
 
 @add_metaclass(DocTypeMeta)
 class InnerDoc(ObjectBase):
@@ -179,7 +178,6 @@ class DocType(ObjectBase):
         es = connections.get_connection(using or cls._doc_type.using)
         doc = es.get(
             index=index or cls._doc_type.index,
-            doc_type=cls._doc_type.name,
             id=id,
             **kwargs
         )
@@ -219,7 +217,6 @@ class DocType(ObjectBase):
         results = es.mget(
             body,
             index=index or cls._doc_type.index,
-            doc_type=cls._doc_type.name,
             **kwargs
         )
 
@@ -288,7 +285,6 @@ class DocType(ObjectBase):
         doc_meta.update(kwargs)
         es.delete(
             index=self._get_index(index),
-            doc_type=self._doc_type.name,
             **doc_meta
         )
 
@@ -317,7 +313,7 @@ class DocType(ObjectBase):
         elif self._doc_type.index:
             meta['_index'] = self._doc_type.index
 
-        meta['_type'] = self._doc_type.name
+        # ES 7+ does not use mapping types, so we don't include _type
         meta['_source'] = d
         return meta
 
@@ -369,7 +365,6 @@ class DocType(ObjectBase):
 
         meta = es.update(
             index=self._get_index(index),
-            doc_type=self._doc_type.name,
             body=body,
             **doc_meta
         )
@@ -405,7 +400,6 @@ class DocType(ObjectBase):
         doc_meta.update(kwargs)
         meta = es.index(
             index=self._get_index(index),
-            doc_type=self._doc_type.name,
             body=self.to_dict(),
             **doc_meta
         )

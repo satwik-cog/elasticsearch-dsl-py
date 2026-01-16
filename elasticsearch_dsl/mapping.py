@@ -117,11 +117,13 @@ class Mapping(object):
 
     def update_from_es(self, index, using='default'):
         es = connections.get_connection(using)
-        raw = es.indices.get_mapping(index=index, doc_type=self.doc_type)
+        # ES 7+ does not use doc_type parameter
+        raw = es.indices.get_mapping(index=index)
         _, raw = raw.popitem()
-        raw = raw['mappings'][self.doc_type]
+        # ES 7+ mappings are not wrapped in a type name
+        raw = raw['mappings']
 
-        for name, definition in iteritems(raw['properties']):
+        for name, definition in iteritems(raw.get('properties', {})):
             self.field(name, definition)
 
         # metadata like _all etc
@@ -186,5 +188,8 @@ class Mapping(object):
             for f in ('analyzer', 'search_analyzer', 'search_quote_analyzer'):
                 if hasattr(_all.get(f, None), 'to_dict'):
                     _all[f] = _all[f].to_dict()
-        d[self.doc_type].update(meta)
-        return d
+        # ES 7+ mappings are not wrapped in a type name
+        # Get the properties from the inner dict and merge with meta
+        inner = d.get(self.doc_type, {})
+        inner.update(meta)
+        return inner

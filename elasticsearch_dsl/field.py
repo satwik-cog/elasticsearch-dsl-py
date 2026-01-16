@@ -147,8 +147,9 @@ class Object(Field):
         return self._empty()
 
     def to_dict(self):
+        # ES 7+ mappings are not wrapped in a type name
+        # The mapping.to_dict() now returns {'properties': {...}, ...}
         d = self._mapping.to_dict()
-        _, d = d.popitem()
         d["type"] = self.name
         return d
 

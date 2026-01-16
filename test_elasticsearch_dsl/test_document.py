@@ -66,24 +66,21 @@ class OptionalObjectWithRequiredField(document.DocType):
     comments = field.Nested(properties={'title': field.Keyword(required=True)})
 
 def test_matches_uses_index_name_and_doc_type():
+    # ES 7+ does not use _type, so matches only checks index
     assert SimpleCommit._doc_type.matches({
-        '_type': 'doc',
         '_index': 'test-git'
     })
     assert not SimpleCommit._doc_type.matches({
-        '_type': 'doc',
         '_index': 'not-test-git'
     })
     assert MySubDoc._doc_type.matches({
-        '_type': 'my_custom_doc',
+        '_index': 'default-index'
+    })
+    # In ES 7+, we only match on index, not type
+    assert MySubDoc._doc_type.matches({
         '_index': 'default-index'
     })
     assert not MySubDoc._doc_type.matches({
-        '_type': 'doc',
-        '_index': 'default-index'
-    })
-    assert not MySubDoc._doc_type.matches({
-        '_type': 'my_custom_doc',
         '_index': 'test-git'
     })
 
@@ -92,12 +89,11 @@ def test_matches_accepts_wildcards():
         class Meta:
             index = 'my-*'
 
+    # ES 7+ does not use _type, so matches only checks index
     assert MyDoc._doc_type.matches({
-        '_type': 'doc',
         '_index': 'my-index'
     })
     assert not MyDoc._doc_type.matches({
-        '_type': 'doc',
         '_index': 'not-my-index'
     })
 
@@ -124,11 +120,10 @@ def test_custom_field():
     assert isinstance(s.title, Secret)
 
 def test_custom_field_mapping():
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'doc': {
-            'properties': {
-                'title': {'index': 'no', 'type': 'text'}
-            }
+        'properties': {
+            'title': {'index': 'no', 'type': 'text'}
         }
     } == SecretDoc._doc_type.mapping.to_dict()
 
@@ -171,10 +166,10 @@ def test_to_dict_with_meta():
     d = MySubDoc(title='hello')
     d.meta.routing = 'some-parent'
 
+    # ES 7+ does not use mapping types, so _type is not included
     assert {
         '_index': 'default-index',
         '_routing': 'some-parent',
-        '_type': 'my_custom_doc',
         '_source': {'title': 'hello'},
     } == d.to_dict(True)
 
@@ -182,9 +177,9 @@ def test_to_dict_with_meta_includes_custom_index():
     d = MySubDoc(title='hello')
     d.meta.index = 'other-index'
 
+    # ES 7+ does not use mapping types, so _type is not included
     assert {
         '_index': 'other-index',
-        '_type': 'my_custom_doc',
         '_source': {'title': 'hello'},
     } == d.to_dict(True)
 
@@ -221,16 +216,15 @@ def test_meta_field_mapping():
             dynamic = document.MetaField('strict')
             dynamic_templates = document.MetaField([42])
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'doc': {
-            'properties': {
-                'username': {'type': 'text'}
-            },
-            '_all': {'enabled': False},
-            '_index': {'enabled': True},
-            'dynamic': 'strict',
-            'dynamic_templates': [42]
-        }
+        'properties': {
+            'username': {'type': 'text'}
+        },
+        '_all': {'enabled': False},
+        '_index': {'enabled': True},
+        'dynamic': 'strict',
+        'dynamic_templates': [42]
     } == User._doc_type.mapping.to_dict()
 
 def test_multi_value_fields():
@@ -313,16 +307,15 @@ def test_to_dict_ignores_empty_collections():
 def test_declarative_mapping_definition():
     assert issubclass(MyDoc, document.DocType)
     assert hasattr(MyDoc, '_doc_type')
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'doc': {
-            'properties': {
-                'created_at': {'type': 'date'},
-                'name': {'type': 'text'},
-                'title': {'type': 'keyword'},
-                'inner': {
-                    'type': 'object',
-                    'properties': {'old_field': {'type': 'text'}}
-                }
+        'properties': {
+            'created_at': {'type': 'date'},
+            'name': {'type': 'text'},
+            'title': {'type': 'keyword'},
+            'inner': {
+                'type': 'object',
+                'properties': {'old_field': {'type': 'text'}}
             }
         }
     } == MyDoc._doc_type.mapping.to_dict()
@@ -335,11 +328,10 @@ def test_you_can_supply_own_mapping_instance():
             mapping = Mapping('my_d')
             mapping.meta('_all', enabled=False)
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'my_d': {
-            '_all': {'enabled': False},
-            'properties': {'title': {'type': 'text'}}
-        }
+        '_all': {'enabled': False},
+        'properties': {'title': {'type': 'text'}}
     } == MyD._doc_type.mapping.to_dict()
 
 def test_document_can_be_created_dynamically():
@@ -376,16 +368,15 @@ def test_document_inheritance():
     assert issubclass(MySubDoc, document.DocType)
     assert hasattr(MySubDoc, '_doc_type')
     assert 'my_custom_doc' == MySubDoc._doc_type.name
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'my_custom_doc': {
-            'properties': {
-                'created_at': {'type': 'date'},
-                'name': {'type': 'keyword'},
-                'title': {'type': 'keyword'},
-                'inner': {
-                    'type': 'object',
-                    'properties': {'old_field': {'type': 'text'}}
-                }
+        'properties': {
+            'created_at': {'type': 'date'},
+            'name': {'type': 'keyword'},
+            'title': {'type': 'keyword'},
+            'inner': {
+                'type': 'object',
+                'properties': {'old_field': {'type': 'text'}}
             }
         }
     } == MySubDoc._doc_type.mapping.to_dict()
@@ -407,18 +398,17 @@ def test_meta_inheritance():
     # index and using should be
     assert MyMultiSubDoc._doc_type.index == MySubDoc._doc_type.index
     assert MyMultiSubDoc._doc_type.using == MySubDoc._doc_type.using
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'doc': {
-            'properties': {
-                'created_at': {'type': 'date'},
-                'name': {'type': 'keyword'},
-                'title': {'type': 'keyword'},
-                'inner': {
-                    'type': 'object',
-                    'properties': {'old_field': {'type': 'text'}}
-                },
-                'extra': {'type': 'long'}
-            }
+        'properties': {
+            'created_at': {'type': 'date'},
+            'name': {'type': 'keyword'},
+            'title': {'type': 'keyword'},
+            'inner': {
+                'type': 'object',
+                'properties': {'old_field': {'type': 'text'}}
+            },
+            'extra': {'type': 'long'}
         }
     } == MyMultiSubDoc._doc_type.mapping.to_dict()
 

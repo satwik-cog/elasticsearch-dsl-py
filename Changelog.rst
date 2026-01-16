@@ -3,6 +3,24 @@
 Changelog
 =========
 
+7.0.0 (dev)
+-----------
+
+Backwards incompatible release compatible with elasticsearch 7.0, changes
+include:
+
+ * Elasticsearch 7 removes mapping types entirely. The ``doc_type`` parameter
+   has been removed from search, delete_by_query, and other API calls.
+ * Mappings are no longer wrapped in a type name. ``Mapping.to_dict()`` now
+   returns ``{'properties': {...}}`` instead of ``{'type_name': {'properties': {...}}}``.
+ * The ``_type`` field is no longer included in document metadata since ES 7
+   doesn't return it. The ``HitMeta`` class still converts ``_type`` to
+   ``doc_type`` if present in the response for backwards compatibility.
+ * ``DocType.matches()`` now only checks the index name, not the type name.
+ * Updated ``Object.to_dict()`` to correctly include the ``properties`` key
+   for nested object fields.
+ * Updated elasticsearch dependency to ``elasticsearch>=7.0.0,<8.0.0``.
+
 6.0.1 (2018-01-02)
 ------------------
 
