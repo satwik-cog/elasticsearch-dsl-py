@@ -33,14 +33,16 @@ def test_datehistogram_facet(data_client):
     rs = RepoSearch()
     r = rs.execute()
 
-    assert r.hits.total == 1
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert r.hits.total['value'] == 1
     assert [(datetime(2014, 3, 1, 0, 0), 1, False)] == r.facets.created
 
 def test_boolean_facet(data_client):
     rs = RepoSearch()
     r = rs.execute()
 
-    assert r.hits.total == 1
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert r.hits.total['value'] == 1
     assert [(True, 1, False)] == r.facets.public
 
 
@@ -49,7 +51,8 @@ def test_empty_search_finds_everything(data_client):
 
     r = cs.execute()
 
-    assert r.hits.total == 52
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert r.hits.total['value'] == 52
     assert [
         ('elasticsearch_dsl', 40, False),
         ('test_elasticsearch_dsl', 35, False),
@@ -94,7 +97,8 @@ def test_term_filters_are_shown_as_selected_and_data_is_filtered(data_client):
 
     r = cs.execute()
 
-    assert 35 == r.hits.total
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert 35 == r.hits.total['value']
     assert [
         ('elasticsearch_dsl', 40, False),
         ('test_elasticsearch_dsl', 35, True), # selected
@@ -137,7 +141,8 @@ def test_range_filters_are_shown_as_selected_and_data_is_filtered(data_client):
 
     r = cs.execute()
 
-    assert 19 == r.hits.total
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert 19 == r.hits.total['value']
 
 def test_pagination(data_client):
     cs = CommitSearch()

@@ -11,12 +11,15 @@ SKIP_VALUES = ('', None)
 EXPAND__TO_DOT=True
 
 DOC_META_FIELDS = frozenset((
-    'id', 'routing', 'version', 'version_type'
+    # ES 7+ uses if_seq_no and if_primary_term for optimistic concurrency control
+    # instead of version (which is still supported for external versioning)
+    'id', 'routing', 'version', 'version_type', 'if_seq_no', 'if_primary_term'
 ))
 
 META_FIELDS = frozenset((
     # Elasticsearch metadata fields, except 'type'
-    'index', 'using', 'score',
+    # ES 7+ returns seq_no and primary_term for optimistic concurrency control
+    'index', 'using', 'score', 'seq_no', 'primary_term',
 )).union(DOC_META_FIELDS)
 
 def _wrap(val, obj_wrapper=None):

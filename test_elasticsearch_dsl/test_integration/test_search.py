@@ -54,12 +54,14 @@ def test_top_hits_are_wrapped_in_response(data_client):
 
 
 def test_inner_hits_are_wrapped_in_response(data_client):
+    # ES 7+ uses parent_type parameter renamed to parent
     s = Search(index='git')[0:1].query('has_parent', parent_type='repo', inner_hits={}, query=Q('match_all'))
     response = s.execute()
 
     commit = response.hits[0]
     assert isinstance(commit.meta.inner_hits.repo, response.__class__)
-    assert repr(commit.meta.inner_hits.repo[0]).startswith("<Hit(doc/elasticsearch-dsl-py): ")
+    # ES 7+ doesn't include type in hit repr, just index and id
+    assert repr(commit.meta.inner_hits.repo[0]).startswith("<Hit(git/elasticsearch-dsl-py): ")
 
 def test_scan_respects_doc_types(data_client):
     repos = list(Repository.search().scan())
@@ -96,7 +98,8 @@ def test_multi_search(data_client):
     assert isinstance(r1[0], Repository)
     assert r1._search is s1
 
-    assert 52 == r2.hits.total
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert 52 == r2.hits.total['value']
     assert r2._search is s2
 
 def test_multi_missing(data_client):
@@ -116,7 +119,8 @@ def test_multi_missing(data_client):
     assert isinstance(r1[0], Repository)
     assert r1._search is s1
 
-    assert 52 == r2.hits.total
+    # ES 7+ returns hits.total as {'relation': 'eq', 'value': N}
+    assert 52 == r2.hits.total['value']
     assert r2._search is s2
 
     assert r3 is None

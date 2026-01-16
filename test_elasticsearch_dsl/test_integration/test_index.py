@@ -13,15 +13,14 @@ def test_index_template_works(write_client):
     i = Index('test-blog')
     i.create()
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
         'test-blog': {
             'mappings': {
-                'doc': {
-                    'properties': {
-                        'title': {'type': 'text', 'analyzer': 'my_analyzer'},
-                        'published_from': {'type': 'date'},
-                    }
-                },
+                'properties': {
+                    'title': {'type': 'text', 'analyzer': 'my_analyzer'},
+                    'published_from': {'type': 'date'},
+                }
             }
         }
     } == write_client.indices.get_mapping(index='test-blog')
@@ -37,15 +36,14 @@ def test_index_can_be_created_with_settings_and_mappings(write_client):
     i.settings(number_of_replicas=0, number_of_shards=1)
     i.create()
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
         'test-blog': {
             'mappings': {
-                'doc': {
-                    'properties': {
-                        'title': {'type': 'text', 'analyzer': 'my_analyzer'},
-                        'published_from': {'type': 'date'}
-                    }
-                },
+                'properties': {
+                    'title': {'type': 'text', 'analyzer': 'my_analyzer'},
+                    'published_from': {'type': 'date'}
+                }
             }
         }
     } == write_client.indices.get_mapping(index='test-blog')

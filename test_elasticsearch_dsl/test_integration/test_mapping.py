@@ -8,15 +8,15 @@ def test_mapping_saved_into_es(write_client):
     m.field('tags', 'keyword')
     m.save('test-mapping', using=write_client)
 
-    assert write_client.indices.exists_type(index='test-mapping', doc_type='test-type')
+    # ES 7+ does not have mapping types, so we check the index exists instead
+    assert write_client.indices.exists(index='test-mapping')
+    # ES 7+ mappings are not wrapped in a type name
     assert {
         'test-mapping': {
             'mappings': {
-                'test-type': {
-                    'properties': {
-                        'name': {'type': 'text', 'analyzer': 'my_analyzer'},
-                        'tags': {'type': 'keyword'}
-                    }
+                'properties': {
+                    'name': {'type': 'text', 'analyzer': 'my_analyzer'},
+                    'tags': {'type': 'keyword'}
                 }
             }
         }
@@ -34,14 +34,12 @@ def test_mapping_saved_into_es_when_index_already_exists_closed(write_client):
     write_client.indices.close(index='test-mapping')
     m.save('test-mapping', using=write_client)
 
-
+    # ES 7+ mappings are not wrapped in a type name
     assert {
         'test-mapping': {
             'mappings': {
-                'test-type': {
-                    'properties': {
-                        'name': {'type': 'text', 'analyzer': 'my_analyzer'},
-                    }
+                'properties': {
+                    'name': {'type': 'text', 'analyzer': 'my_analyzer'},
                 }
             }
         }
@@ -62,47 +60,45 @@ def test_mapping_saved_into_es_when_index_already_exists_with_analysis(write_cli
     m.field('title', 'text', analyzer=analyzer)
     m.save('test-mapping', using=write_client)
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
         'test-mapping': {
             'mappings': {
-                'test-type': {
-                    'properties': {
-                        'name': {'type': 'text', 'analyzer': 'my_analyzer'},
-                        'title': {'type': 'text', 'analyzer': 'my_analyzer'},
-                    }
+                'properties': {
+                    'name': {'type': 'text', 'analyzer': 'my_analyzer'},
+                    'title': {'type': 'text', 'analyzer': 'my_analyzer'},
                 }
             }
         }
     } == write_client.indices.get_mapping(index='test-mapping')
 
 def test_mapping_gets_updated_from_es(write_client):
+    # ES 7+ mappings are not wrapped in a type name
+    # Also _all meta field is removed in ES 7
     write_client.indices.create(
         index='test-mapping',
         body={
             'settings': {'number_of_shards': 1, 'number_of_replicas': 0},
             'mappings': {
-                'my_doc': {
-                    'date_detection': False,
-                    '_all': {'enabled': False},
-                    'properties': {
-                        'title': {
-                            'type': 'text',
-                            'analyzer': 'snowball',
-                            'fields': {
-                                'raw': {'type': 'keyword'}
-                            }
-                        },
-                        'created_at': {'type': 'date'},
-                        'comments': {
-                            'type': 'nested',
-                            'properties': {
-                                'created': {'type': 'date'},
-                                'author': {
-                                    'type': 'text',
-                                    'analyzer': 'snowball',
-                                    'fields': {
-                                        'raw': {'type': 'keyword'}
-                                    }
+                'date_detection': False,
+                'properties': {
+                    'title': {
+                        'type': 'text',
+                        'analyzer': 'snowball',
+                        'fields': {
+                            'raw': {'type': 'keyword'}
+                        }
+                    },
+                    'created_at': {'type': 'date'},
+                    'comments': {
+                        'type': 'nested',
+                        'properties': {
+                            'created': {'type': 'date'},
+                            'author': {
+                                'type': 'text',
+                                'analyzer': 'snowball',
+                                'fields': {
+                                    'raw': {'type': 'keyword'}
                                 }
                             }
                         }
@@ -115,21 +111,19 @@ def test_mapping_gets_updated_from_es(write_client):
     m = mapping.Mapping.from_es('test-mapping', 'my_doc', using=write_client)
 
     assert ['comments', 'created_at', 'title'] == list(sorted(m.properties.properties._d_.keys()))
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'my_doc': {
-            'date_detection': False,
-            '_all': {'enabled': False},
-            'properties': {
-                'comments': {
-                    'type': 'nested',
-                    'properties': {
-                        'created': {'type': 'date'},
-                        'author': {'analyzer': 'snowball', 'fields': {'raw': {'type': 'keyword'}}, 'type': 'text'}
-                    },
+        'date_detection': False,
+        'properties': {
+            'comments': {
+                'type': 'nested',
+                'properties': {
+                    'created': {'type': 'date'},
+                    'author': {'analyzer': 'snowball', 'fields': {'raw': {'type': 'keyword'}}, 'type': 'text'}
                 },
-                'created_at': {'type': 'date'},
-                'title': {'analyzer': 'snowball', 'fields': {'raw': {'type': 'keyword'}}, 'type': 'text'}
-            }
+            },
+            'created_at': {'type': 'date'},
+            'title': {'analyzer': 'snowball', 'fields': {'raw': {'type': 'keyword'}}, 'type': 'text'}
         }
     } == m.to_dict()
 

@@ -176,8 +176,10 @@ class DocType(ObjectBase):
         ``Elasticsearch.get`` unchanged.
         """
         es = connections.get_connection(using or cls._doc_type.using)
+        # ES 7+ uses _doc as the default type
         doc = es.get(
             index=index or cls._doc_type.index,
+            doc_type='_doc',
             id=id,
             **kwargs
         )
@@ -214,9 +216,11 @@ class DocType(ObjectBase):
                 for doc in docs
             ]
         }
+        # ES 7+ uses _doc as the default type
         results = es.mget(
             body,
             index=index or cls._doc_type.index,
+            doc_type='_doc',
             **kwargs
         )
 
@@ -283,8 +287,10 @@ class DocType(ObjectBase):
             if k in self.meta
         )
         doc_meta.update(kwargs)
+        # ES 7+ uses _doc as the default type
         es.delete(
             index=self._get_index(index),
+            doc_type='_doc',
             **doc_meta
         )
 
@@ -363,8 +369,10 @@ class DocType(ObjectBase):
             'detect_noop': detect_noop,
         }
 
+        # ES 7+ uses _doc as the default type
         meta = es.update(
             index=self._get_index(index),
+            doc_type='_doc',
             body=body,
             **doc_meta
         )
@@ -397,9 +405,19 @@ class DocType(ObjectBase):
             for k in DOC_META_FIELDS
             if k in self.meta
         )
+        # ES 7+ uses if_seq_no and if_primary_term for optimistic concurrency control
+        # Convert version to if_seq_no/if_primary_term if seq_no and primary_term are available
+        if 'version' in doc_meta and 'version_type' not in doc_meta:
+            # Internal versioning - ES 7 requires if_seq_no and if_primary_term
+            if 'seq_no' in self.meta and 'primary_term' in self.meta:
+                doc_meta['if_seq_no'] = self.meta.seq_no
+                doc_meta['if_primary_term'] = self.meta.primary_term
+                del doc_meta['version']
         doc_meta.update(kwargs)
+        # ES 7+ uses _doc as the default type
         meta = es.index(
             index=self._get_index(index),
+            doc_type='_doc',
             body=self.to_dict(),
             **doc_meta
         )
