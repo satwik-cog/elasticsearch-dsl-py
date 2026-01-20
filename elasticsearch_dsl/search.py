@@ -648,7 +648,7 @@ class Search(Request):
         only the actual number is returned.
         """
         if hasattr(self, '_response'):
-            return self._response.hits.total
+            return self._response.hits.total['value'] if isinstance(self._response.hits.total, dict) else self._response.hits.total
 
         es = connections.get_connection(self._using)
 
