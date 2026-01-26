@@ -244,10 +244,10 @@ class Index(IndexBody):
 
         # update the mappings, any conflict in the mappings will result in an
         # exception
+        # ES 7+ mappings are not wrapped in a type name
         mappings = body.pop('mappings', {})
         if mappings:
-            for doc_type in mappings:
-                self.put_mapping(doc_type=doc_type, body=mappings[doc_type])
+            self.put_mapping(body=mappings)
 
     def analyze(self, **kwargs):
         """

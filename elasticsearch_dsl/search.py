@@ -184,18 +184,19 @@ class Request(object):
 
     def _get_result(self, hit, parent_class=None):
         doc_class = Hit
-        dt = hit.get('_type')
 
         if '_nested' in hit:
             doc_class = self._resolve_nested(hit['_nested']['field'], parent_class)
 
-        elif dt in self._doc_type_map:
-            doc_class = self._doc_type_map[dt]
-
         else:
+            # In ES 7+, _type is removed, so we match on index only
             for doc_type in self._doc_type:
                 if hasattr(doc_type, '_doc_type') and doc_type._doc_type.matches(hit):
                     doc_class = doc_type
+                    break
+                # Check if there's a callback in _doc_type_map for this doc_type string
+                elif isinstance(doc_type, str) and doc_type in self._doc_type_map:
+                    doc_class = self._doc_type_map[doc_type]
                     break
 
         for t in hit.get('inner_hits', ()):
@@ -647,7 +648,7 @@ class Search(Request):
         only the actual number is returned.
         """
         if hasattr(self, '_response'):
-            return self._response.hits.total
+            return self._response.hits.total['value'] if isinstance(self._response.hits.total, dict) else self._response.hits.total
 
         es = connections.get_connection(self._using)
 
@@ -655,7 +656,6 @@ class Search(Request):
         # TODO: failed shards detection
         return es.count(
             index=self._index,
-            doc_type=self._get_doc_type(),
             body=d,
             **self._params
         )['count']
@@ -674,7 +674,6 @@ class Search(Request):
                 self,
                 es.search(
                     index=self._index,
-                    doc_type=self._get_doc_type(),
                     body=self.to_dict(),
                     **self._params
                 )
@@ -697,7 +696,6 @@ class Search(Request):
                 es,
                 query=self.to_dict(),
                 index=self._index,
-                doc_type=self._get_doc_type(),
                 **self._params
         ):
             yield self._get_result(hit)
@@ -713,7 +711,6 @@ class Search(Request):
             es.delete_by_query(
                 index=self._index,
                 body=self.to_dict(),
-                doc_type=self._get_doc_type(),
                 **self._params
             )
         )
@@ -757,8 +754,7 @@ class MultiSearch(Request):
             meta = {}
             if s._index:
                 meta['index'] = s._index
-            if s._doc_type:
-                meta['type'] = s._get_doc_type()
+            # ES 7+ does not use mapping types, so we don't include type
             meta.update(s._params)
 
             out.append(meta)
@@ -775,7 +771,6 @@ class MultiSearch(Request):
 
             responses = es.msearch(
                 index=self._index,
-                doc_type=self._get_doc_type(),
                 body=self.to_dict(),
                 **self._params
             )

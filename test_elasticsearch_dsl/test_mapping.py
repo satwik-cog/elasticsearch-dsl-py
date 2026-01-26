@@ -7,12 +7,11 @@ def test_mapping_can_has_fields():
     m = mapping.Mapping('article')
     m.field('name', 'text').field('tags', 'keyword')
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'article': {
-            'properties': {
-                'name': {'type': 'text'},
-                'tags': {'type': 'keyword'}
-            }
+        'properties': {
+            'name': {'type': 'text'},
+            'tags': {'type': 'keyword'}
         }
     } == m.to_dict()
 
@@ -33,21 +32,20 @@ def test_mapping_update_is_recursive():
 
     m1.update(m2, update_only=True)
 
+    # ES 7+ mappings are not wrapped in a type name
     assert {
-        'article': {
-            '_all': {'enabled': False},
-            '_analyzer': {'path': 'lang'},
-            'dynamic': False,
-            'properties': {
-                'published_from': {'type': 'date'},
-                'title': {'type': 'text'},
-                'lang': {'type': 'keyword'},
-                'author': {
-                    'type': 'object',
-                    'properties': {
-                        'name': {'type': 'text'},
-                        'email': {'type': 'text'},
-                    }
+        '_all': {'enabled': False},
+        '_analyzer': {'path': 'lang'},
+        'dynamic': False,
+        'properties': {
+            'published_from': {'type': 'date'},
+            'title': {'type': 'text'},
+            'lang': {'type': 'keyword'},
+            'author': {
+                'type': 'object',
+                'properties': {
+                    'name': {'type': 'text'},
+                    'email': {'type': 'text'},
                 }
             }
         }

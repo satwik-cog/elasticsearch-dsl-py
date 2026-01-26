@@ -62,13 +62,12 @@ def test_registered_doc_type_included_in_to_dict():
     i.doc_type(Post)
 
     assert Post._doc_type.index == 'i'
+    # ES 7+ mappings are not wrapped in a type name
     assert {
         'mappings': {
-            'doc': {
-                'properties': {
-                    'title': {'type': 'text'},
-                    'published_from': {'type': 'date'},
-                }
+            'properties': {
+                'title': {'type': 'text'},
+                'published_from': {'type': 'date'},
             }
         }
     } == i.to_dict()

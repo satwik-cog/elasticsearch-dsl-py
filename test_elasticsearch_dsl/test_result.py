@@ -53,7 +53,8 @@ def test_interactive_helpers(dummy_response):
     hits = res.hits
     h = hits[0]
 
-    rhits = "[<Hit(test-index/company/elasticsearch): %s>, <Hit(test-index/employee/42): %s...}>, <Hit(test-index/employee/47): %s...}>, <Hit(test-index/employee/53): {}>]" % (
+    # ES 7+ does not include _type in Hit repr
+    rhits = "[<Hit(test-index/elasticsearch): %s>, <Hit(test-index/42): %s...}>, <Hit(test-index/47): %s...}>, <Hit(test-index/53): {}>]" % (
             repr(dummy_response['hits']['hits'][0]['_source']),
             repr(dummy_response['hits']['hits'][1]['_source'])[:60],
             repr(dummy_response['hits']['hits'][2]['_source'])[:60],
@@ -63,7 +64,7 @@ def test_interactive_helpers(dummy_response):
     assert '<Response: %s>' % rhits == repr(res)
     assert rhits == repr(hits)
     assert set(['meta', 'city', 'name']) == set(dir(h))
-    assert "<Hit(test-index/company/elasticsearch): %r>" % dummy_response['hits']['hits'][0]['_source'] == repr(h)
+    assert "<Hit(test-index/elasticsearch): %r>" % dummy_response['hits']['hits'][0]['_source'] == repr(h)
 
 def test_empty_response_is_false(dummy_response):
     dummy_response['hits']['hits'] = []
@@ -86,6 +87,7 @@ def test_iterating_over_response_gives_you_hits(dummy_response):
     h = hits[0]
 
     assert 'test-index' == h.meta.index
+    # ES 7+ still converts _type to doc_type if present in response
     assert 'company' == h.meta.doc_type
     assert 'elasticsearch' == h.meta.id
     assert 12 == h.meta.score

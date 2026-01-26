@@ -27,10 +27,11 @@ class Hit(AttrDict):
         return super(Hit, self).__dir__() + ['meta']
 
     def __repr__(self):
+        # ES 7+ does not include _type, so doc_type may not be present
         return '<Hit(%s): %s>' % (
             '/'.join(
                 getattr(self.meta, key)
-                for key in ('index', 'doc_type', 'id')
+                for key in ('index', 'id')
                 if key in self.meta),
             super(Hit, self).__repr__()
         )

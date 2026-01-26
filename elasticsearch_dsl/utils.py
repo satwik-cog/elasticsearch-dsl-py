@@ -11,12 +11,16 @@ SKIP_VALUES = ('', None)
 EXPAND__TO_DOT=True
 
 DOC_META_FIELDS = frozenset((
+    # User-provided document meta fields that can be passed to ES API calls
+    # Note: if_seq_no and if_primary_term are NOT included here because they are
+    # computed from seq_no/primary_term in save() method, not user-provided
     'id', 'routing', 'version', 'version_type'
 ))
 
 META_FIELDS = frozenset((
     # Elasticsearch metadata fields, except 'type'
-    'index', 'using', 'score',
+    # ES 7+ returns seq_no and primary_term for optimistic concurrency control
+    'index', 'using', 'score', 'seq_no', 'primary_term',
 )).union(DOC_META_FIELDS)
 
 def _wrap(val, obj_wrapper=None):
