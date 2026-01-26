@@ -11,9 +11,10 @@ SKIP_VALUES = ('', None)
 EXPAND__TO_DOT=True
 
 DOC_META_FIELDS = frozenset((
-    # ES 7+ uses if_seq_no and if_primary_term for optimistic concurrency control
-    # instead of version (which is still supported for external versioning)
-    'id', 'routing', 'version', 'version_type', 'if_seq_no', 'if_primary_term'
+    # User-provided document meta fields that can be passed to ES API calls
+    # Note: if_seq_no and if_primary_term are NOT included here because they are
+    # computed from seq_no/primary_term in save() method, not user-provided
+    'id', 'routing', 'version', 'version_type'
 ))
 
 META_FIELDS = frozenset((
