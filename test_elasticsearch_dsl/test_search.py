@@ -25,7 +25,6 @@ def test_cache_can_be_ignored(mock_client):
     s.execute(ignore_cache=True)
 
     mock_client.search.assert_called_once_with(
-        doc_type=[],
         index=None,
         body={'query': {'match_all': {}}},
     )
@@ -213,12 +212,12 @@ def test_doc_type_can_be_document_class():
     s = search.Search(doc_type=MyDocType)
     assert s._doc_type == [MyDocType]
     assert s._doc_type_map == {}
-    assert s._get_doc_type() == ['doc']
+    assert s._get_doc_type() == ['_doc']
 
     s = search.Search().doc_type(MyDocType)
     assert s._doc_type == [MyDocType]
     assert s._doc_type_map == {}
-    assert s._get_doc_type() == ['doc']
+    assert s._get_doc_type() == ['_doc']
 
 def test_sort():
     s = search.Search()
@@ -415,7 +414,6 @@ def test_params_being_passed_to_search(mock_client):
     s.execute()
 
     mock_client.search.assert_called_once_with(
-        doc_type=[],
         index=None,
         body={'query': {'match_all': {}}},
         routing='42'
@@ -551,7 +549,6 @@ def test_delete_by_query(mock_client):
     s.delete()
 
     mock_client.delete_by_query.assert_called_once_with(
-        doc_type=[],
         index=None,
         body={"query": {"match": {"lang": "java"}}}
     )

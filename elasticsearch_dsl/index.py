@@ -246,8 +246,7 @@ class Index(IndexBody):
         # exception
         mappings = body.pop('mappings', {})
         if mappings:
-            for doc_type in mappings:
-                self.put_mapping(doc_type=doc_type, body=mappings[doc_type])
+            self.put_mapping(body=mappings)
 
     def analyze(self, **kwargs):
         """

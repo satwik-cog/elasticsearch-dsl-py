@@ -60,7 +60,6 @@ def dummy_response():
         "hits": [
           {
             "_index": "test-index",
-            "_type": "company",
             "_id": "elasticsearch",
             "_score": 12.0,
 
@@ -71,7 +70,6 @@ def dummy_response():
           },
           {
             "_index": "test-index",
-            "_type": "employee",
             "_id": "42",
             "_score": 11.123,
             "_routing": "elasticsearch",
@@ -87,7 +85,6 @@ def dummy_response():
           },
           {
             "_index": "test-index",
-            "_type": "employee",
             "_id": "47",
             "_score": 1,
             "_routing": "elasticsearch",
@@ -103,7 +100,6 @@ def dummy_response():
           },
           {
             "_index": "test-index",
-            "_type": "employee",
             "_id": "53",
             "_score": 16.0,
             "_routing": "elasticsearch",
@@ -156,7 +152,6 @@ def aggs_data():
                                 'hits': [
                                     {
                                         '_id': '3ca6e1e73a071a705b4babd2f581c91a2a3e5037',
-                                        '_type': 'doc',
                                         '_source': {
                                             'stats': {'files': 4, 'deletions': 7, 'lines': 30, 'insertions': 23},
                                             'committed_date': '2014-05-02T13:47:19'
@@ -166,7 +161,6 @@ def aggs_data():
                                     },
                                     {
                                         '_id': 'eb3e543323f189fd7b698e66295427204fff5755',
-                                        '_type': 'doc',
                                         '_source': {
                                             'stats': {'files': 1, 'deletions': 0, 'lines': 18, 'insertions': 18},
                                             'committed_date': '2014-05-01T13:32:14'
@@ -189,7 +183,6 @@ def aggs_data():
                                 'hits': [
                                     {
                                         '_id': '3ca6e1e73a071a705b4babd2f581c91a2a3e5037',
-                                        '_type': 'doc',
                                         '_source': {
                                             'stats': {'files': 4, 'deletions': 7, 'lines': 30, 'insertions': 23},
                                             'committed_date': '2014-05-02T13:47:19'
@@ -198,7 +191,6 @@ def aggs_data():
                                         '_index': 'flat-git'
                                     }, {
                                         '_id': 'dd15b6ba17dd9ba16363a51f85b31f66f1fb1157',
-                                        '_type': 'doc',
                                         '_source': {
                                             'stats': {'files': 3, 'deletions': 18, 'lines': 62, 'insertions': 44},
                                             'committed_date': '2014-05-01T13:30:44'

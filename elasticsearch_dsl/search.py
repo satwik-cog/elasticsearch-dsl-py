@@ -184,13 +184,9 @@ class Request(object):
 
     def _get_result(self, hit, parent_class=None):
         doc_class = Hit
-        dt = hit.get('_type')
 
         if '_nested' in hit:
             doc_class = self._resolve_nested(hit['_nested']['field'], parent_class)
-
-        elif dt in self._doc_type_map:
-            doc_class = self._doc_type_map[dt]
 
         else:
             for doc_type in self._doc_type:
@@ -655,7 +651,6 @@ class Search(Request):
         # TODO: failed shards detection
         return es.count(
             index=self._index,
-            doc_type=self._get_doc_type(),
             body=d,
             **self._params
         )['count']
@@ -674,7 +669,6 @@ class Search(Request):
                 self,
                 es.search(
                     index=self._index,
-                    doc_type=self._get_doc_type(),
                     body=self.to_dict(),
                     **self._params
                 )
@@ -697,7 +691,6 @@ class Search(Request):
                 es,
                 query=self.to_dict(),
                 index=self._index,
-                doc_type=self._get_doc_type(),
                 **self._params
         ):
             yield self._get_result(hit)
@@ -713,7 +706,6 @@ class Search(Request):
             es.delete_by_query(
                 index=self._index,
                 body=self.to_dict(),
-                doc_type=self._get_doc_type(),
                 **self._params
             )
         )
@@ -757,8 +749,6 @@ class MultiSearch(Request):
             meta = {}
             if s._index:
                 meta['index'] = s._index
-            if s._doc_type:
-                meta['type'] = s._get_doc_type()
             meta.update(s._params)
 
             out.append(meta)
@@ -775,7 +765,6 @@ class MultiSearch(Request):
 
             responses = es.msearch(
                 index=self._index,
-                doc_type=self._get_doc_type(),
                 body=self.to_dict(),
                 **self._params
             )
