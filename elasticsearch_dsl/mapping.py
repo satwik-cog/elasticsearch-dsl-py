@@ -117,9 +117,9 @@ class Mapping(object):
 
     def update_from_es(self, index, using='default'):
         es = connections.get_connection(using)
-        raw = es.indices.get_mapping(index=index, doc_type=self.doc_type)
+        raw = es.indices.get_mapping(index=index)
         _, raw = raw.popitem()
-        raw = raw['mappings'][self.doc_type]
+        raw = raw['mappings']
 
         for name, definition in iteritems(raw['properties']):
             self.field(name, definition)
@@ -177,6 +177,8 @@ class Mapping(object):
 
     def to_dict(self):
         d = self.properties.to_dict()
+        # In ES 7.x, mappings are typeless - extract properties from the type wrapper
+        props = d[self.doc_type]
         meta = self._meta
 
         # hard coded serialization of analyzers in _all
@@ -186,5 +188,5 @@ class Mapping(object):
             for f in ('analyzer', 'search_analyzer', 'search_quote_analyzer'):
                 if hasattr(_all.get(f, None), 'to_dict'):
                     _all[f] = _all[f].to_dict()
-        d[self.doc_type].update(meta)
-        return d
+        props.update(meta)
+        return props

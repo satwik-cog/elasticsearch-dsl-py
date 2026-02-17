@@ -148,7 +148,6 @@ class Object(Field):
 
     def to_dict(self):
         d = self._mapping.to_dict()
-        _, d = d.popitem()
         d["type"] = self.name
         return d
 

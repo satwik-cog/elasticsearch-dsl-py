@@ -33,7 +33,6 @@ def create_flat_git_index(client, index):
             }
           },
           'mappings': {
-            'doc': {
               'properties': {
                 'description': {'type': 'text', 'analyzer': 'snowball'},
                 'author': user_mapping,
@@ -44,7 +43,6 @@ def create_flat_git_index(client, index):
                 'files': {'type': 'text', 'analyzer': 'file_path', 'fielddata': True},
 
               }
-            }
           }
         },
         # ignore already existing index
@@ -84,7 +82,6 @@ def create_git_index(client, index):
             }
           },
           'mappings': {
-            'doc': {
               'properties': {
                 # common fields
                 'description': {'type': 'text', 'analyzer': 'snowball'},
@@ -104,7 +101,6 @@ def create_git_index(client, index):
                 'created_at': {'type': 'date'},
                 'tags': {'type': 'keyword'}
               }
-            }
           }
         },
         # ignore already existing index
@@ -175,8 +171,7 @@ def flatten_doc(d):
     del src['commit_repo']
     return {
         '_index': 'flat-git',
-        '_type': 'doc',
-        '_id': d['_id'],
+                '_id': d['_id'],
         '_source': src
     }
 

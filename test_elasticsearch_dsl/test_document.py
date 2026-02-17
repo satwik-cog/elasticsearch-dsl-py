@@ -65,25 +65,17 @@ class NestedSecret(document.DocType):
 class OptionalObjectWithRequiredField(document.DocType):
     comments = field.Nested(properties={'title': field.Keyword(required=True)})
 
-def test_matches_uses_index_name_and_doc_type():
+def test_matches_uses_index_name():
     assert SimpleCommit._doc_type.matches({
-        '_type': 'doc',
         '_index': 'test-git'
     })
     assert not SimpleCommit._doc_type.matches({
-        '_type': 'doc',
         '_index': 'not-test-git'
     })
     assert MySubDoc._doc_type.matches({
-        '_type': 'my_custom_doc',
         '_index': 'default-index'
     })
     assert not MySubDoc._doc_type.matches({
-        '_type': 'doc',
-        '_index': 'default-index'
-    })
-    assert not MySubDoc._doc_type.matches({
-        '_type': 'my_custom_doc',
         '_index': 'test-git'
     })
 
@@ -93,11 +85,9 @@ def test_matches_accepts_wildcards():
             index = 'my-*'
 
     assert MyDoc._doc_type.matches({
-        '_type': 'doc',
         '_index': 'my-index'
     })
     assert not MyDoc._doc_type.matches({
-        '_type': 'doc',
         '_index': 'not-my-index'
     })
 
@@ -125,10 +115,8 @@ def test_custom_field():
 
 def test_custom_field_mapping():
     assert {
-        'doc': {
-            'properties': {
-                'title': {'index': 'no', 'type': 'text'}
-            }
+        'properties': {
+            'title': {'index': 'no', 'type': 'text'}
         }
     } == SecretDoc._doc_type.mapping.to_dict()
 
@@ -174,7 +162,6 @@ def test_to_dict_with_meta():
     assert {
         '_index': 'default-index',
         '_routing': 'some-parent',
-        '_type': 'my_custom_doc',
         '_source': {'title': 'hello'},
     } == d.to_dict(True)
 
@@ -184,7 +171,6 @@ def test_to_dict_with_meta_includes_custom_index():
 
     assert {
         '_index': 'other-index',
-        '_type': 'my_custom_doc',
         '_source': {'title': 'hello'},
     } == d.to_dict(True)
 
@@ -222,15 +208,13 @@ def test_meta_field_mapping():
             dynamic_templates = document.MetaField([42])
 
     assert {
-        'doc': {
-            'properties': {
-                'username': {'type': 'text'}
-            },
-            '_all': {'enabled': False},
-            '_index': {'enabled': True},
-            'dynamic': 'strict',
-            'dynamic_templates': [42]
-        }
+        'properties': {
+            'username': {'type': 'text'}
+        },
+        '_all': {'enabled': False},
+        '_index': {'enabled': True},
+        'dynamic': 'strict',
+        'dynamic_templates': [42]
     } == User._doc_type.mapping.to_dict()
 
 def test_multi_value_fields():
@@ -314,15 +298,13 @@ def test_declarative_mapping_definition():
     assert issubclass(MyDoc, document.DocType)
     assert hasattr(MyDoc, '_doc_type')
     assert {
-        'doc': {
-            'properties': {
-                'created_at': {'type': 'date'},
-                'name': {'type': 'text'},
-                'title': {'type': 'keyword'},
-                'inner': {
-                    'type': 'object',
-                    'properties': {'old_field': {'type': 'text'}}
-                }
+        'properties': {
+            'created_at': {'type': 'date'},
+            'name': {'type': 'text'},
+            'title': {'type': 'keyword'},
+            'inner': {
+                'type': 'object',
+                'properties': {'old_field': {'type': 'text'}}
             }
         }
     } == MyDoc._doc_type.mapping.to_dict()
@@ -336,10 +318,8 @@ def test_you_can_supply_own_mapping_instance():
             mapping.meta('_all', enabled=False)
 
     assert {
-        'my_d': {
-            '_all': {'enabled': False},
-            'properties': {'title': {'type': 'text'}}
-        }
+        '_all': {'enabled': False},
+        'properties': {'title': {'type': 'text'}}
     } == MyD._doc_type.mapping.to_dict()
 
 def test_document_can_be_created_dynamically():
@@ -377,15 +357,13 @@ def test_document_inheritance():
     assert hasattr(MySubDoc, '_doc_type')
     assert 'my_custom_doc' == MySubDoc._doc_type.name
     assert {
-        'my_custom_doc': {
-            'properties': {
-                'created_at': {'type': 'date'},
-                'name': {'type': 'keyword'},
-                'title': {'type': 'keyword'},
-                'inner': {
-                    'type': 'object',
-                    'properties': {'old_field': {'type': 'text'}}
-                }
+        'properties': {
+            'created_at': {'type': 'date'},
+            'name': {'type': 'keyword'},
+            'title': {'type': 'keyword'},
+            'inner': {
+                'type': 'object',
+                'properties': {'old_field': {'type': 'text'}}
             }
         }
     } == MySubDoc._doc_type.mapping.to_dict()
@@ -408,17 +386,15 @@ def test_meta_inheritance():
     assert MyMultiSubDoc._doc_type.index == MySubDoc._doc_type.index
     assert MyMultiSubDoc._doc_type.using == MySubDoc._doc_type.using
     assert {
-        'doc': {
-            'properties': {
-                'created_at': {'type': 'date'},
-                'name': {'type': 'keyword'},
-                'title': {'type': 'keyword'},
-                'inner': {
-                    'type': 'object',
-                    'properties': {'old_field': {'type': 'text'}}
-                },
-                'extra': {'type': 'long'}
-            }
+        'properties': {
+            'created_at': {'type': 'date'},
+            'name': {'type': 'keyword'},
+            'title': {'type': 'keyword'},
+            'inner': {
+                'type': 'object',
+                'properties': {'old_field': {'type': 'text'}}
+            },
+            'extra': {'type': 'long'}
         }
     } == MyMultiSubDoc._doc_type.mapping.to_dict()
 

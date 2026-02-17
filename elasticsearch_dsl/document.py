@@ -35,8 +35,8 @@ class DocTypeOptions(object):
         # default cluster alias, can be overriden in doc.meta
         self._using = getattr(meta, 'using', None)
 
-        # get doc_type name, if not defined use 'doc'
-        doc_type = getattr(meta, 'doc_type', 'doc')
+        # get doc_type name, if not defined use '_doc'
+        doc_type = getattr(meta, 'doc_type', '_doc')
 
         # create the mapping instance
         self.mapping = getattr(meta, 'mapping', Mapping(doc_type))
@@ -93,7 +93,7 @@ class DocTypeOptions(object):
 
         return (
                 self.index is None or fnmatch(hit.get('_index', ''), self.index)
-            ) and self.name == hit.get('_type')
+            )
 
 @add_metaclass(DocTypeMeta)
 class InnerDoc(ObjectBase):
@@ -179,7 +179,6 @@ class DocType(ObjectBase):
         es = connections.get_connection(using or cls._doc_type.using)
         doc = es.get(
             index=index or cls._doc_type.index,
-            doc_type=cls._doc_type.name,
             id=id,
             **kwargs
         )
@@ -219,7 +218,6 @@ class DocType(ObjectBase):
         results = es.mget(
             body,
             index=index or cls._doc_type.index,
-            doc_type=cls._doc_type.name,
             **kwargs
         )
 
@@ -288,7 +286,6 @@ class DocType(ObjectBase):
         doc_meta.update(kwargs)
         es.delete(
             index=self._get_index(index),
-            doc_type=self._doc_type.name,
             **doc_meta
         )
 
@@ -317,7 +314,6 @@ class DocType(ObjectBase):
         elif self._doc_type.index:
             meta['_index'] = self._doc_type.index
 
-        meta['_type'] = self._doc_type.name
         meta['_source'] = d
         return meta
 
@@ -369,7 +365,6 @@ class DocType(ObjectBase):
 
         meta = es.update(
             index=self._get_index(index),
-            doc_type=self._doc_type.name,
             body=body,
             **doc_meta
         )
@@ -405,7 +400,6 @@ class DocType(ObjectBase):
         doc_meta.update(kwargs)
         meta = es.index(
             index=self._get_index(index),
-            doc_type=self._doc_type.name,
             body=self.to_dict(),
             **doc_meta
         )

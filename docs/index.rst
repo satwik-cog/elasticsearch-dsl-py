@@ -23,6 +23,12 @@ Compatibility
 The library is compatible with all Elasticsearch versions since ``1.x`` but you
 **have to use a matching major version**:
 
+For **Elasticsearch 7.0** and later, use the major version 7 (``7.x.y``) of the
+library.
+
+For **Elasticsearch 6.0** and later, use the major version 6 (``6.x.y``) of the
+library.
+
 For **Elasticsearch 5.0** and later, use the major version 5 (``5.x.y``) of the
 library.
 
@@ -35,6 +41,12 @@ library.
 
 The recommended way to set your requirements in your `setup.py` or
 `requirements.txt` is::
+
+    # Elasticsearch 7.x
+    elasticsearch-dsl>=7.0.0,<8.0.0
+
+    # Elasticsearch 6.x
+    elasticsearch-dsl>=6.0.0,<7.0.0
 
     # Elasticsearch 5.x
     elasticsearch-dsl>=5.0.0,<6.0.0
